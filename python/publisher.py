@@ -24,8 +24,8 @@ i = 25
 # Atribui as variáveis
 node = os.getenv('host', 'localhost')
 topic = os.getenv('topic', 'teste')
-attribute = os.getenv('attr', 'temp')
-intermsg = os.getenv('msgTime', '1000')
+attribute = os.getenv('attr', 'value')
+intermsg = os.getenv('msgTime', '0')
 
 sleep(1)
 while True:
@@ -38,4 +38,4 @@ while True:
     cmd = "mosquitto_pub -h {} -t {} -m \"{}\"".format(node, topic, msg)
     logging.info(cmd)
     os.system(cmd)
-    sleep(int(intermsg)/1000)
+    sleep(int(intermsg))
