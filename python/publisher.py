@@ -5,6 +5,7 @@ Baseado em
 https://hackmd.io/@ramonfontes/iot-dojot
 
 Modificado para receber como parametro o tempo entre mensagens.
+Modificado para aceitar parametros do .env.
 """
 
 import os
@@ -12,29 +13,29 @@ import random
 import logging
 
 from time import sleep
-from sys import argv
+from dotenv import load_dotenv
+
+# Carrega as variáveis do arquivo .env
+load_dotenv(dotenv_path='../.env')
 
 logging.basicConfig(level="INFO")
 
-if len(argv) < 4:
-    print("Args: broker_host topic attribute time_between_pubs_ms")
-    print("Exemplo: localhost teste temperature 1000")
-    exit(0)
-
 i = 25
-node = argv[1]
-topic = argv[2]
-attribute = argv[3]
-intermsg = argv[4]
+# Atribui as variáveis
+node = os.getenv('host', 'localhost')
+topic = os.getenv('topic', 'teste')
+attribute = os.getenv('attr', 'temp')
+intermsg = os.getenv('msgTime', '1000')
 
-attr = '{\"%s\":' % (attribute)
-character = '}'
 sleep(1)
 while True:
     data = random.randint(i-5, i+5)
     i = data
-    cmd = "mosquitto_pub -h {} -t {} -m \'{}{}{}\'"
-    cmd = cmd.format(node, topic, attr, data, character)
+
+    # Construindo a string JSON manualmente
+    msg = '{{"{}": {}}}'.format(attribute, data)
+
+    cmd = "mosquitto_pub -h {} -t {} -m \"{}\"".format(node, topic, msg)
     logging.info(cmd)
     os.system(cmd)
     sleep(int(intermsg)/1000)
