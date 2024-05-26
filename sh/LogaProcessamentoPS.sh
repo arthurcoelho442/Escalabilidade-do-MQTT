@@ -16,5 +16,5 @@ while true; do
      # python3 ../python/gera-grafico.py &
 
      # Aguarda o intervalo especificado antes da próxima iteração
-     sleep $delay
+    sleep $delay
 done

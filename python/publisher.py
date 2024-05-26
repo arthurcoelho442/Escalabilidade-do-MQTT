@@ -38,4 +38,4 @@ while True:
     cmd = "mosquitto_pub -h {} -t {} -m \"{}\"".format(node, topic, msg)
     logging.info(cmd)
     os.system(cmd)
-    sleep(int(intermsg))
+    sleep(int(intermsg)/1000)
