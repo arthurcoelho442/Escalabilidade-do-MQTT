@@ -3,7 +3,7 @@
 delay=1; #  intervalo entre as iterações
 output_file="../resultados/mem.dat"
 
-mkdir -p ../resultados/usuarios/
+mkdir -p ../resultados/
 # Limpa o arquivo antes de começar
 > "$output_file"
 
