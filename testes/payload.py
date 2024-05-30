@@ -1,7 +1,4 @@
 import os
-import random
-
-from time import sleep
 from dotenv import load_dotenv
 from classes.mqtt import MQTT
 
@@ -26,15 +23,12 @@ def increasing_payload(attribute='teste', i=''):
     dic = {attribute: i}
     i   += 'x'
     return dic, i
-
-def random_num(attribute='teste', i=25):
-    dic = {attribute: random.randint(i-5, i+5)}
-    i   = dic[attribute]
-    return dic, i
   
 if __name__ == '__main__':
     mqtt = MQTT(host, port, topic, attr)
+    if(stdout_arquivo):
+        mqtt.set_path(result_path)    
+    mqtt.set_func(increasing_payload)
+    mqtt.set_run(numSubs, numPubs, msgTime, simTime)
     
-    mqtt.config_run(random_num, numSubs, numPubs, msgTime, simTime)
-    mqtt.config_path(result_path, stdout_arquivo)
     mqtt.run()
