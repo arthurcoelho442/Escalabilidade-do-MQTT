@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import os
+import threading
 from time import sleep
 
 logging.basicConfig(level="INFO")
@@ -12,6 +13,20 @@ class MQTT():
         self.topic      = topic
         self.attribute  = attribute
     
+    def config_run(self, func, numSubs, numPubs, msgTime, simTime):
+        self.func       = func
+        self.numSubs    = numSubs
+        self.numPubs    = numPubs
+        self.msgTime    = msgTime
+        self.simTime    = simTime
+    
+    def config_path(self, result_path, stdout_arquivo=False):
+        if(stdout_arquivo):
+            os.makedirs(result_path, exist_ok=True)
+            
+        self.path    = result_path
+        self.stdout_arquivo = stdout_arquivo
+    
     def _prepare_log_file(self, id, path, role):
         path += role
         os.makedirs(path+role, exist_ok=True)
@@ -21,12 +36,12 @@ class MQTT():
             arquivo.write("Iniciado\n")
         return open(log_file_path, 'a')
             
-    def sub(self, id, stop_event, path, stdout_arquivo=False):
+    def sub(self, id, stop_event):
         cmd = f"mosquitto_sub -h {self.host} -p {self.port} -t {self.topic}"
         logging.info(f"Subscriber {id:02d} - {cmd}")
         
-        if(stdout_arquivo):
-            arquivo = self._prepare_log_file (id, path, "/subscribers")
+        if(self.stdout_arquivo):
+            arquivo = self._prepare_log_file (id, self.path, "/subscribers")
             sub_process = subprocess.Popen(cmd.split(), stdout=arquivo,)
         else:
             sub_process = subprocess.Popen(cmd.split(), stdout=subprocess.DEVNULL,)
@@ -38,33 +53,55 @@ class MQTT():
         sub_process.terminate()
         sub_process.wait()
         
-        if(stdout_arquivo):
+        if(self.stdout_arquivo):
             arquivo.writelines(["Terminado"])
             arquivo.close() 
 
-    def pub(self, id, intermsg, func, stop_event, path, stdout_arquivo=False):
-        if(stdout_arquivo):
-            arquivo = self._prepare_log_file (id, path, "/publishers")
+    def pub(self, id, stop_event):
+        if(self.stdout_arquivo):
+            arquivo = self._prepare_log_file (id, self.path, "/publishers")
             log = []
         
         cmd = f"mosquitto_pub -h {self.host} -p {self.port} -t {self.topic}"
         logging.info(f"Publisher {id:02d} - {cmd}")
         
-        _, i = func(self.attribute)
+        _, i = self.func(self.attribute)
         try:
             while not stop_event.is_set():
-                dic, i = func(self.attribute, i)
+                dic, i = self.func(self.attribute, i)
                 
                 os.system(f"{cmd} -m \'{dic}\'")
                 
-                if(stdout_arquivo):
+                if(self.stdout_arquivo):
                     log.append(f"{dic}\n")
                     
-                sleep(intermsg/1000)
+                sleep(self.msgTime/1000)
         except Exception as e:
             print(e, len(i))
         
-        if(stdout_arquivo):
+        if(self.stdout_arquivo):
             log.append("Terminado")
             arquivo.writelines(log)
             arquivo.close()
+          
+    def run(self):
+        multThread, stop_events  = [], []
+        
+        for qtd, func in [(self.numSubs, self.sub), (self.numPubs, self.pub)]:
+            for i in range(qtd):
+                stop_event = threading.Event()
+                stop_events.append(stop_event)
+                thread = threading.Thread(target=func, args=(i+1, stop_event, ))
+                multThread.append(thread)
+                thread.start()
+
+        # Espera o tempo de execução finalizar
+        sleep(self.simTime)
+
+        # Sinaliza todas as threads para pararem
+        for event in stop_events:
+            event.set()
+
+        # Verifica se todas as threads acabaram 
+        for thread in multThread:
+            thread.join()
