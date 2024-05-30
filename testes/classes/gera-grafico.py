@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-pasta = "../resultados/"
+pasta = "../../resultados/"
 
 # Ler os dados do arquivo
 data = pd.read_csv(pasta+'mem.dat', delim_whitespace=True, header=None, names=['%CPU', '%MEM'])
