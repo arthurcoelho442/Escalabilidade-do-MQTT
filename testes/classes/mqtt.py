@@ -4,6 +4,7 @@ import logging
 import random
 import os
 from time import sleep
+from paho.mqtt.client import Client
 
 logging.basicConfig(level="INFO")
 
@@ -78,19 +79,22 @@ class MQTT():
         cmd = f"mosquitto_pub -h {self.__host} -p {self.__port} -t {self.__topic}"
         logging.info(f"Publisher {id:02d} - {cmd}")
         
+        client = Client()
+        client.connect(self.__host, self.__port)
         _, i = self.__func(self.__attribute)
         try:
             while not stop_event.is_set():
                 dic, i = self.__func(self.__attribute, i)
                 
                 os.system(f"{cmd} -m \'{dic}\'")
+                client.publish(self.__topic, dic[self.__attribute])
                 
                 if(self.__stdout_arquivo):
                     log.append(f"{dic}\n")
                     
                 sleep(self.__msgTime/1000)
         except Exception as e:
-            print(e, len(i))
+            print(e)
         
         if(self.__stdout_arquivo):
             log.append("Terminado")
