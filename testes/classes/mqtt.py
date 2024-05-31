@@ -1,12 +1,12 @@
-import subprocess
-import threading
-import logging
-import random
 import os
+import sys
+import random
+import logging
+import threading
+
 from time import sleep
 from dotenv import load_dotenv
 from paho.mqtt.client import Client
-import json
 
 logging.basicConfig(level="INFO")
 
@@ -106,8 +106,13 @@ class MQTT():
                         
                     sleep(self.__msgTime/1000)
             except Exception as e:
-                print(e)
-                              
+                print(e, end='')
+                if type(i) == str:
+                    print(f' tamanho = {len(i)} bytes, tempo de execução: {self.__time} s')
+                    
+                for event in self.__stop_events:
+                    event.set()
+                    
         cmd = f"mosquitto_pub -h {self.__host} -p {self.__port} -t {self.__topic}"
         logging.info(f"Publisher {id:02d} - {cmd}")
         
@@ -123,23 +128,27 @@ class MQTT():
         client.disconnect()
     
     def run(self):
-        multThread, stop_events  = [], []
+        self.__multThread, self.__stop_events  = [], []
         
         for qtd, func in [(self.__numSubs, self.sub), (self.__numPubs, self.pub)]:
             for i in range(qtd):
                 stop_event = threading.Event()
-                stop_events.append(stop_event)
+                self.__stop_events.append(stop_event)
                 thread = threading.Thread(target=func, args=(i+1, stop_event, ))
-                multThread.append(thread)
+                self.__multThread.append(thread)
                 thread.start()
+        try:
+            self.__time = 0
+            for _ in range(self.__simTime):
+                sleep(1)
+                self.__time += 1
+                if False in [stop_event.is_set() for stop_event in self.__stop_events]:
+                    break
+        except KeyboardInterrupt: pass
 
-        # Espera o tempo de execução finalizar
-        sleep(self.__simTime)
-
-        # Sinaliza todas as threads para pararem
-        for event in stop_events:
+        for event in self.__stop_events:
             event.set()
 
         # Verifica se todas as threads acabaram 
-        for thread in multThread:
+        for thread in self.__multThread:
             thread.join()
