@@ -59,9 +59,11 @@ class MQTT():
         def on_message(client, userdata, message):
             try:
                 mensagem = message.payload.decode('utf-8')
-                if(self.__stdout_arquivo and '{' in mensagem and '}' in mensagem):
+                
+                if(self.__stdout_arquivo and not('{' in mensagem and '}' in mensagem)):
+                    dic = {self.__attribute:mensagem}
                     with open(f"{self.__path}/subscribers/sub_{id}.log", 'a') as arquivo:
-                        arquivo.write(f"{mensagem}\n")
+                        arquivo.write(f"{dic}\n")
             except: pass
             
         def on_connect(client, userdata, flags, rc):
@@ -86,6 +88,9 @@ class MQTT():
 
         # Espera sinalização do evento de parada
         stop_event.wait()
+
+        with open(f"{self.__path}/subscribers/sub_{id}.log", 'a') as arquivo:
+            arquivo.write("Terminado")
 
         # Desconexão do broker MQTT
         client.loop_stop()
