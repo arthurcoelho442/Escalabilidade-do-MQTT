@@ -89,8 +89,9 @@ class MQTT():
         # Espera sinalização do evento de parada
         stop_event.wait()
 
-        with open(f"{self.__path}/subscribers/sub_{id}.log", 'a') as arquivo:
-            arquivo.write("Terminado")
+        if(self.__stdout_arquivo):
+            with open(f"{self.__path}/subscribers/sub_{id}.log", 'a') as arquivo:
+                arquivo.write("Terminado")
 
         # Desconexão do broker MQTT
         client.loop_stop()
