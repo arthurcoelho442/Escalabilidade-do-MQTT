@@ -1,15 +1,15 @@
 #!/bin/bash
 
 delay=1  # intervalo entre as iterações
-output_file="./payload/resultados/mem.dat"
+output_file="./resultados/payload/mem.dat"
 
-mkdir -p ./payload/resultados/
+mkdir -p ./resultados/payload
 
 # Limpa o conteúdo do arquivo antes de começar
 > "$output_file"
 
 # Executa o script payload.py em segundo plano
-python3 ./payload/payload.py &
+python3 ./Arquivos/payload.py &
 
 # Obtém o PID do processo em segundo plano
 payload_pid=$!
@@ -22,3 +22,8 @@ while kill -0 $payload_pid 2>/dev/null; do
     # Aguarda o intervalo especificado antes da próxima iteração
     sleep $delay
 done
+
+python3 ./Arquivos/classes/gera-grafico.py ./resultados/payload/
+
+echo "Scripts executados com sucesso"
+exit 0

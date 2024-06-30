@@ -12,7 +12,8 @@ logging.basicConfig(level="INFO")
 
 class MQTT():
     # Descritor
-    def __init__(self, path) -> None:        
+    def __init__(self, path) -> None:
+        
         load_dotenv(dotenv_path=path+"/.env")
 
         # config conection
@@ -20,7 +21,7 @@ class MQTT():
         self.__attribute        = os.getenv('attr', "value")
         self.__topic            = os.getenv('topic', 'teste')
         self.__port             = int(os.getenv('port', 1883))
-        
+
         # config exec
         self.__numSubs          = int(os.getenv('numSubscriber', 1))
         self.__numPubs          = int(os.getenv('numPublishers', 1))
@@ -28,9 +29,8 @@ class MQTT():
         self.__msgTime          = int(os.getenv('msgTime', 100))
         
         # config path result
-        self.__path             = os.getenv('result_path', "./")
+        self.__path             = path[:-17] + "/resultados"
         self.__stdout_arquivo   = eval(os.getenv('stdout_arquivo', 'False'))
-        
         if self.__stdout_arquivo:
             os.makedirs(self.__path, exist_ok=True)
             
