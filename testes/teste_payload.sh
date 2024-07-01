@@ -1,9 +1,9 @@
 #!/bin/bash
 
 delay=1  # intervalo entre as iterações
-output_file="./resultados/payload/mem.dat"
+output_file="./resultados/teste_payload/mem.dat"
 
-mkdir -p ./resultados/payload
+mkdir -p ./resultados/teste_payload
 
 # Limpa o conteúdo do arquivo antes de começar
 > "$output_file"
@@ -23,7 +23,7 @@ while kill -0 $payload_pid 2>/dev/null; do
     sleep $delay
 done
 
-python3 ./Arquivos/classes/gera-grafico.py ./resultados/payload/
+python3 ./Arquivos/classes/gera-grafico.py ./resultados/teste_payload/
 
 echo "Scripts executados com sucesso"
 exit 0

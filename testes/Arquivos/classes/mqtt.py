@@ -36,6 +36,9 @@ class MQTT():
             
         self.__func           = self.__random_num
         
+        # evento
+        self.__stop_event = threading.Event()
+        
     # SET
     def set_func(self, func):
         self.__func       = func
@@ -55,7 +58,7 @@ class MQTT():
         return open(log_file_path, 'a')
     
     # Public function   
-    def sub(self, id, stop_event):
+    def sub(self, id):
         def on_message(client, userdata, message):
             try:
                 mensagem = message.payload.decode('utf-8')
@@ -87,7 +90,7 @@ class MQTT():
         client.loop_start()
 
         # Espera sinalização do evento de parada
-        stop_event.wait()
+        self.__stop_event.wait()
 
         if(self.__stdout_arquivo):
             with open(f"{self.__path}/subscribers/sub_{id}.log", 'a') as arquivo:
@@ -97,11 +100,11 @@ class MQTT():
         client.loop_stop()
         client.disconnect()
 
-    def pub(self, id, stop_event):
+    def pub(self, id):
         def loop(arquivo = None):
             _, i = self.__func(self.__attribute)
             try:
-                while not stop_event.is_set():
+                while not self.__stop_event.is_set():
                     dic, i = self.__func(self.__attribute, i)
                     
                     os.system(f"{cmd} -m \'{dic}\'")
@@ -115,9 +118,7 @@ class MQTT():
                 print(e, end='')
                 if type(i) == str:
                     print(f' tamanho = {len(i)} bytes, tempo de execução: {self.__time} s')
-                    
-                for event in self.__stop_events:
-                    event.set()
+                self.__stop_event.set()
                     
         cmd = f"mosquitto_pub -h {self.__host} -p {self.__port} -t {self.__topic}"
         logging.info(f"Publisher {id:02d} - {cmd}")
@@ -134,26 +135,22 @@ class MQTT():
         client.disconnect()
     
     def run(self):
-        self.__multThread, self.__stop_events  = [], []
-        
+        self.__multThread = []
         for qtd, func in [(self.__numSubs, self.sub), (self.__numPubs, self.pub)]:
             for i in range(qtd):
-                stop_event = threading.Event()
-                self.__stop_events.append(stop_event)
-                thread = threading.Thread(target=func, args=(i+1, stop_event, ))
+                thread = threading.Thread(target=func, args=(i+1, ))
                 self.__multThread.append(thread)
                 thread.start()
         try:
             self.__time = 0
-            for _ in range(self.__simTime):
-                sleep(1)
+            while self.__time < self.__simTime:
                 self.__time += 1
-                if False in [stop_event.is_set() for stop_event in self.__stop_events]:
+                sleep(1)
+                if self.__stop_event.is_set() is True:
                     break
         except KeyboardInterrupt: pass
 
-        for event in self.__stop_events:
-            event.set()
+        self.__stop_event.set()
 
         # Verifica se todas as threads acabaram 
         for thread in self.__multThread:
