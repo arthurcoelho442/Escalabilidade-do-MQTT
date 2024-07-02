@@ -7,7 +7,7 @@ mb = kb * 1000
 gb = mb * 1000
         
 def increasing_payload(attribute='teste', i=''):
-    i   += 'x'*b
+    i   += 'x'*mb
     dic = {attribute: i}
     return dic, i
   

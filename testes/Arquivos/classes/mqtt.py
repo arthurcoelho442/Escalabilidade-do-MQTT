@@ -103,22 +103,22 @@ class MQTT():
     def pub(self, id):
         def loop(arquivo = None):
             _, i = self.__func(self.__attribute)
-            try:
-                while not self.__stop_event.is_set():
-                    dic, i = self.__func(self.__attribute, i)
-                    
-                    os.system(f"{cmd} -m \'{dic}\'")
+            while not self.__stop_event.is_set():
+                dic, i = self.__func(self.__attribute, i)
+                os.system(f"{cmd} -m \'{dic}\'")
+                
+                try:
                     client.publish(self.__topic, dic[self.__attribute])
+                except Exception as e:
+                    print(e, end='')
+                    if type(i) == str:
+                        print(f' tamanho = {len(i)-1000**2} bytes, tempo de execução: {self.__time} s')
+                    self.__stop_event.set()
+                
+                if(arquivo):
+                    arquivo.write(f"{dic}\n")
                     
-                    if(arquivo):
-                        arquivo.write(f"{dic}\n")
-                        
-                    sleep(self.__msgTime/1000)
-            except Exception as e:
-                print(e, end='')
-                if type(i) == str:
-                    print(f' tamanho = {len(i)} bytes, tempo de execução: {self.__time} s')
-                self.__stop_event.set()
+                sleep(self.__msgTime/1000)
                     
         cmd = f"mosquitto_pub -h {self.__host} -p {self.__port} -t {self.__topic}"
         logging.info(f"Publisher {id:02d} - {cmd}")
@@ -155,3 +155,4 @@ class MQTT():
         # Verifica se todas as threads acabaram 
         for thread in self.__multThread:
             thread.join()
+        print("codigo finalizado")
