@@ -4,39 +4,104 @@ Um ambiente para fazer teste de carga e compreender o uso do protocolo MQTT.
 
 ##Conteúdo:
 
-- `publisher.py` Faz uma publicação em um tópico usando json.
-- `pubs.sh` Cria N processos de publisher.py durante um tempo pré determinado
-- `stopPubs.sh`  Interrompe todos os processos
-- `LogaProcessamentoPS.sh` Captura o uso de CPU e memória
+<!-- - `gera-grafico.py` Faz uma publicação em um tópico usando json.
+- `mqtt.py` Cria N processos de publisher.py durante um tempo pré determinado
+- `.env`  Interrompe todos os processos
+- `payload.py` Captura o uso de CPU e memória -->
 
+- `gera-grafico.py` Gera um grafico baseado em dados da cpu e memoria do broker
+- `mqtt.py` Classe responsavel por manter a comunicação com o broker, instanciar os publishers e os subscribs
+- `.env` Arquivo com as configurações de execução, um para cada teste
+- `payload.py`-`pub_sub.py`-`publisher.py` Utilizão a classe mqtt para rodar o teste, podem ser executados sem o script.
+- `teste_payload.sh` - `teste_payload.sh` - `teste_publisher.sh` Além de executar o teste, após a execução do .py gera o grafico utilizando o  gera-grafico.py.
 
+## Modo de execução
 
-##Uso
+**Atualização do sistema**
+```
+sudo apt-get update && apt-get upgrade -y
+```
 
-1. Instalar  Mosquitto e o gnuplot
+**Adicione o repositorio remoto**
+```
+git clone https://github.com/arthurcoelho442/Escalabilidade-do-MQTT.git
+```
+
+Entre com suas credenciais e as configurações serão baixadas.
+
+**Defina o Email do usuario e o name**
+```
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+```
+
+**Instale a ferramenta de ambiente virtual python**
+```
+sudo apt install python3.10-venv
+```
+
+**Crie um ambiente virtual python**
+```
+python3 -m venv ./venv
+```
+
+**Entre no ambiente virtual**
+```
+source venv/bin/activate
+```
+
+**Instale as dependencias**
+```
+pip install -r requirements.txt 
+```
+
+**Instale o Mosquitto**
 ```
 sudo apt-get install mosquitto mosquitto-clients
-sudo apt-get install gnuplot
 ```
 
-2. O broker vai ser inicializado por padrão.  Para ver os logs é necessário
-pará-lo e reinicializá-lo.
+## Uso
 
+**Entre no ambiente virtual**
+```
+source venv/bin/activate
+```
+
+**Para ver os logs do broker é necessário pará-lo e reinicialo**
 ```
 sudo /etc/init.d/mosquitto stop
 sudo mosquitto –v
 ```
 
-3. Configure o nome do tópico em pubs.sh. Por exemplo, temperatura.
-
-4. Abra 1 ou mais terminais e subscreva à este tópico.
-
+**Para executar o broker em segundo plano basta executar**
 ```
-mosquitto_sub -t temperatura
+sudo mosquitto -v -d
 ```
 
-5. Em um novo terminal execute o LogaProcessamento.sh
+**Navegue até a pasta de testes**
+```
+cd testes/
+```
 
-6. Abra outro terminal, Configure os demais parâmetros em pubs.sh e execute-o. 
+Execute o **teste** de acordo com a sua escolha
+- Teste do Payload (Testa o máximo de caracteres que é possível enviar pelo publisher):
+```
+./teste_payload.sh
+```
+- Teste de Publisher (Analise o consumo de cpu e memória do broker de acordo com o aumento do número de publicações):
+```
+./teste_publisher.sh
+```
+- Teste de Publisher e Subscriber (Analise o consumo de cpu e memória do broker de acordo com o aumento do número de inscritos):
+```
+./teste_pub_sub.sh
+```
 
-7. Ao final, será gerado N arquivos de log e um mem-graph.png com o uso de CPU e memória.
+As configurações de cada execução podem ser encontradas na pasta /testes/Arquivos/{teste-a-ser-executado}/.env
+
+>Ao final, será gerado uma pasta /testes/resultados com uma pasta do teste executando dentro dela, contendo um arquivo mem.dat com o consumo de memória e cpu do broker, uma imagem mem-graph.png com a analise temporal do arquivo mem.dat e caso a opção **stdout_arquivo** esteja habilitada no .config, seram gerados N arquivos de log para cada publisher e subscriber instanciado.
+
+> `Caso necessite finalizar as threads forçadamente execute`
+```
+sudo killall python3
+```
