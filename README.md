@@ -70,7 +70,7 @@ source venv/bin/activate
 **Para ver os logs do broker é necessário pará-lo e reinicialo**
 ```
 sudo /etc/init.d/mosquitto stop
-sudo mosquitto –v
+sudo mosquitto -v
 ```
 
 **Para executar o broker em segundo plano basta executar**
@@ -96,6 +96,8 @@ Execute o **teste** de acordo com a sua escolha
 ```
 ./teste_pub_sub.sh
 ```
+
+entre a execução de cada teste reinicie o broker
 
 caso encontre este erro:
 `-bash: ./teste_publisher.sh: /bin/bash^M: bad interpreter: No such file or directory`
