@@ -27,9 +27,10 @@ class MQTT():
         self.__numPubs          = int(os.getenv('numPublishers', 1))
         self.__simTime          = int(os.getenv('simTime', 10))
         self.__msgTime          = int(os.getenv('msgTime', 100))
+        self.__instTime          = int(os.getenv('instTime', 100))
         
         # config path result
-        self.__path             = path[:-17] + "/resultados"
+        self.__path             = os.path.dirname(os.path.dirname(path)) + '/resultados/teste_' + os.path.basename(path)
         self.__stdout_arquivo   = eval(os.getenv('stdout_arquivo', 'False'))
         if self.__stdout_arquivo:
             os.makedirs(self.__path, exist_ok=True)
@@ -117,7 +118,6 @@ class MQTT():
                 
                 if(arquivo):
                     arquivo.write(f"{dic}\n")
-                    
                 sleep(self.__msgTime/1000)
                     
         cmd = f"mosquitto_pub -h {self.__host} -p {self.__port} -t {self.__topic}"
@@ -135,12 +135,13 @@ class MQTT():
         client.disconnect()
     
     def run(self):
-        self.__multThread = []
+        self.__multThread = [] 
         for qtd, func in [(self.__numSubs, self.sub), (self.__numPubs, self.pub)]:
             for i in range(qtd):
                 thread = threading.Thread(target=func, args=(i+1, ))
                 self.__multThread.append(thread)
                 thread.start()
+                sleep(self.__instTime/1000)
         try:
             self.__time = 0
             while self.__time < self.__simTime:
