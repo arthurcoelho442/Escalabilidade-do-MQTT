@@ -97,6 +97,16 @@ Execute o **teste** de acordo com a sua escolha
 ./teste_pub_sub.sh
 ```
 
+caso encontre este erro:
+`-bash: ./teste_publisher.sh: /bin/bash^M: bad interpreter: No such file or directory`
+
+installe o dos2unix e o execute no arquivo:
+```
+sudo apt-get install dos2unix
+
+dos2unix teste_publisher.sh
+```
+
 As configurações de cada execução podem ser encontradas na pasta /testes/Arquivos/{teste-a-ser-executado}/.env
 
 >Ao final, será gerado uma pasta /testes/resultados com uma pasta do teste executando dentro dela, contendo um arquivo mem.dat com o consumo de memória e cpu do broker, uma imagem mem-graph.png com a analise temporal do arquivo mem.dat e caso a opção **stdout_arquivo** esteja habilitada no .config, seram gerados N arquivos de log para cada publisher e subscriber instanciado.
